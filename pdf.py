@@ -25,7 +25,34 @@ def pdfmerge(path):
         merger.append(open(pdf, 'rb'))
     with open('result.pdf', 'wb') as fout:
         merger.write(fout)
-        
+def pdfsplit(path):
+    import pyPdf
+    path = path.split("--")
+    s = path[1].split(":")
+    for i in range(len(s)):
+        if s[i] =="":
+            s[i] = None
+        else:
+            s[i] = int(s[i])
+    if len(s) == 1:
+        s = slice(s[0], s[0]+1, None)
+    elif len(s) == 2:
+        s = slice(s[0], s[1], None)
+    elif len(s) == 3:
+        s = slice(s[0], s[1], s[2])
+    else:
+        print ("Cannot understand pages")    
+    reader = pyPdf.PdfFileReader(file(path[0],"rb"))
+    writer = pyPdf.PdfFileWriter()
+    inputPages = [reader.getPage(i) for i in range(reader.getNumPages())]
+    pages = inputPages[s]
+    for page in pages:
+        writer.addPage(page)
+    name = (os.path.splitext(path[0])[0]+"-"+path[1]+".pdf").replace(":", "_")
+    print (name)
+    outputStream = file(name, "wb")
+    writer.write(outputStream)
+
 parser = argparse.ArgumentParser(description='pdf_reader')
 parser.add_argument('name', type=str, help='Input file dir')
 parser.add_argument('a', type=str, help='action')
@@ -37,6 +64,8 @@ if args.a == "pdf2txt":
     pdf2txt(args.name)
 if args.a == "merge":
     pdfmerge(args.name)
+if args.a == "split":
+    pdfsplit(args.name)
 
 
 
